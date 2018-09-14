@@ -5,19 +5,52 @@
 #include "header.h"
 
 
-struct stackPart{
-    stackPart *next;
+/**********************/
+///tempStack
+/**********************/
+
+struct temp_stack_part{
+    temp_stack_part *next;
     std::string param;
 };
 
-class Stack{
+class temp_stack{
 public:
-    Stack();
+    temp_stack();
     void push(std::string);
     std::string pop();
-    //int flush();
+    int depth_counter;
 private:
-    stackPart *top;
+    temp_stack_part *top;
 };
+
+/**********************/
+/**********************/
+/**********************/
+
+
+/**********************/
+///permStack
+/**********************/
+
+struct perm_stack_part{
+    perm_stack_part *next;
+    serverAddress address;
+};
+
+class perm_stack{
+public:
+    perm_stack();
+    void push(std::string,std::string,int16_t,std::string);
+    serverAddress pop();
+    serverAddress read(int);
+    int depth_counter;
+private:
+    perm_stack_part *top;
+};
+
+/**********************/
+/**********************/
+/**********************/
 
 #endif // STACK_H_INCLUDED

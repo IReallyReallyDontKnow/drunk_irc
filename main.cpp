@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 #include <fstream>
+#include <algorithm>
 #include "resource.h"
 #include "header.h"
 #include "stack.h"
@@ -11,6 +12,8 @@
 HINSTANCE hInst;
 
 serverAddress tempAddress;
+
+perm_stack server_list_memory;
 
 char* buffAddr;
 uint16_t buffPort;
@@ -89,33 +92,33 @@ int8_t addressTypeCheck(char* input){
     }
 }
 
-bool loadList(){
+bool loadList(temp_stack& para_stack){
     std::ifstream listFile;
     listFile.open("serverlist.txt", std::ios::out|std::ios::in);
     if(listFile.is_open()){
+        //para_stack = new Stack;
         std::string line;
         while(std::getline(listFile,line)){
             int str_index = 0;
-            int par_index = 0;
-            std::string paraArray[4];
+            std::string paraArray;
+
             while(str_index < line.length()){
                 if(line[str_index]!=':'){
-                    paraArray[par_index] += line[str_index];
+                    paraArray += line[str_index];
                 }
                 else{
-                    par_index++;
+                    para_stack.push(paraArray);
+                    paraArray = "";
                 }
                 str_index++;
             }
-            for(int i=0;i<4;i++){
-                std::cout << paraArray[i] << " ";
-            }
-            std::cout << "\n";
         }
+        return true;
     }
     else{
         listFile.open("serverlist.txt", std::ios::out|std::ios::in|std::ios::trunc);
         std::cout << "NOPE";
+        return false;
     }
 }
 
@@ -170,8 +173,37 @@ BOOL CALLBACK DlgMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     switch(uMsg)
     {
     case WM_INITDIALOG:
-        loadList();
     {
+        temp_stack init_stack;
+        loadList(init_stack);
+        int index = 0;
+        int list_index = 0;
+        std::string temp_list[4];
+        if(init_stack.depth_counter%4==0){
+            while(index < init_stack.depth_counter){
+                temp_list[list_index]=init_stack.pop();
+                index++;
+                if(list_index<3 && list_index>=0){
+                    list_index++;
+                }
+                else{
+                    list_index=0;
+                    server_list_memory.push(temp_list[3],temp_list[2],atoi(temp_list[1].c_str()),temp_list[0]);
+                    for(int i=0;i<4;i++){
+                        temp_list[i]="";
+                    }
+                }
+            }
+        }
+        else{
+            std::cout << "Something horribly wrong with txt file.";
+        }
+        int loader_index=server_list_memory.depth_counter-1;
+        while(loader_index >= 0){
+            //std::cout << "_" << server_list_memory.read(loader_index).name << "_";
+            SendDlgItemMessage(hwndDlg, IDC_LIST, LB_ADDSTRING, 0, (LPARAM)server_list_memory.read(loader_index).name);
+            loader_index--;
+        }
     }
     return TRUE;
 
