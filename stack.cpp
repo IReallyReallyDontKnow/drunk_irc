@@ -61,14 +61,16 @@ void perm_stack::push(std::string name,std::string address, int16_t port, std::s
     }
     else{
         perm_stack_part *nextPart = new perm_stack_part;
-        top -> address.index = depth_counter;
-        top -> address.name = name.c_str();
-        top -> address.address = address.c_str();
-        top -> address.port = port;
-        top -> address.nick = nick.c_str();
+        nextPart -> address.index = depth_counter;
+        nextPart -> address.name = name.c_str();
+        nextPart -> address.address = address.c_str();
+        nextPart -> address.port = port;
+        nextPart -> address.nick = nick.c_str();
         nextPart -> next = top;
         top = nextPart;
     }
+    std::cout << "*" << depth_counter << "*";
+    std::cout << "-" << top -> address.index << "-";
     depth_counter++;
 }
 
@@ -88,19 +90,23 @@ serverAddress perm_stack::read(int index){
     //std::cout << depth_counter << "_" << index << "_";
 
         //THIS SHIT IS HORRIBLE, I FEEL HORRIBLE.
-        //WHY DOES THIS GIVE YOU SEGMENTATION FAULT ?
+        //WHY DOES THIS GIVE SEGMENTATION FAULT ?
         //...
         //SHOULD I KILL MY SELF ?
         //...
         //NAAH
-        while(reader -> address.index!=index){
-            std::cout << reader -> address.index << "_";
-            reader = reader -> next;
-            /*if(reader -> address.index < 0){
-                break;
-            }*/
+        //1 DAY LATER
+        //ITS GONE! FINALLY!
+    bool goal_check = false;
+    while(reader -> next != NULL){
+        if(reader -> address.index == index){
+            std::cout << "_" << reader -> address.name << "_";
+            return reader -> address;
         }
-        return(reader -> address);
+        else{
+            reader = reader -> next;
+        }
+    }
 
 }
 

@@ -201,7 +201,7 @@ BOOL CALLBACK DlgMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         int loader_index=server_list_memory.depth_counter-1;
         while(loader_index >= 0){
             //std::cout << "_" << server_list_memory.read(loader_index).name << "_";
-            SendDlgItemMessage(hwndDlg, IDC_LIST, LB_ADDSTRING, 0, (LPARAM)server_list_memory.read(loader_index).name);
+            SendDlgItemMessage(hwndDlg, IDC_LIST, LB_ADDSTRING, 0, (LPARAM)server_list_memory.read(loader_index).name.c_str());
             loader_index--;
         }
     }
