@@ -69,9 +69,10 @@ void perm_stack::push(std::string name,std::string address, int16_t port, std::s
         nextPart -> next = top;
         top = nextPart;
     }
-    std::cout << "*" << depth_counter << "*";
-    std::cout << "-" << top -> address.index << "-";
     depth_counter++;
+    //std::cout << "*" << depth_counter << "*";
+    //std::cout << "-" << top -> address.index << "-";
+    //std::cout << "_" << top -> address.name << "_";
 }
 
 serverAddress perm_stack::pop(){
@@ -87,7 +88,6 @@ serverAddress perm_stack::pop(){
 
 serverAddress perm_stack::read(int index){
     perm_stack_part *reader = top;
-    //std::cout << depth_counter << "_" << index << "_";
 
         //THIS SHIT IS HORRIBLE, I FEEL HORRIBLE.
         //WHY DOES THIS GIVE SEGMENTATION FAULT ?
@@ -97,16 +97,19 @@ serverAddress perm_stack::read(int index){
         //NAAH
         //1 DAY LATER
         //ITS GONE! FINALLY!
-    bool goal_check = false;
+
     while(reader -> next != NULL){
         if(reader -> address.index == index){
             std::cout << "_" << reader -> address.name << "_";
+            //std::cout << "*" << reader -> address.index << "*";
             return reader -> address;
         }
         else{
             reader = reader -> next;
         }
     }
+    //I know this shit underneath is really nasty. Don't judge me, I have no energy for this shit.
+    return reader -> address;
 
 }
 
