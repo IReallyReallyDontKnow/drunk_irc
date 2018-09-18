@@ -70,9 +70,6 @@ void perm_stack::push(std::string name,std::string address, int16_t port, std::s
         top = nextPart;
     }
     depth_counter++;
-    //std::cout << "*" << depth_counter << "*";
-    //std::cout << "-" << top -> address.index << "-";
-    //std::cout << "_" << top -> address.name << "_";
 }
 
 serverAddress perm_stack::pop(){
@@ -100,8 +97,6 @@ serverAddress perm_stack::read(int index){
 
     while(reader -> next != NULL){
         if(reader -> address.index == index){
-            std::cout << "_" << reader -> address.name << "_";
-            //std::cout << "*" << reader -> address.index << "*";
             return reader -> address;
         }
         else{
