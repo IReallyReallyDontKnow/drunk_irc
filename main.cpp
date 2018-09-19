@@ -19,6 +19,20 @@ char* buffAddr;
 uint16_t buffPort;
 char* buffName;
 
+bool add_server(perm_stack_part input){
+    std::fstream listFile;
+    listFile.open("serverlist.txt", std::ios::out|std::ios::in);
+    std::string line;
+    while(std::getline(listFile, line)){
+        if(line.length() == 0){
+            listFile << input.address.name << ":" << input.address.address << ":" << input.address.port << ":" << input.address.nick << ":" << "\n";
+            break;
+        }
+    std::cout << line.length();
+    }
+    listFile.close();
+}
+
 int8_t addressTypeCheck(char* input){
     int index = 0;
     int dotCount = 0;
@@ -113,11 +127,13 @@ bool loadList(temp_stack& para_stack){
                 str_index++;
             }
         }
+        listFile.close();
         return true;
     }
     else{
         listFile.open("serverlist.txt", std::ios::out|std::ios::in|std::ios::trunc);
         std::cout << "NOPE";
+        listFile.close();
         return false;
     }
 }
@@ -179,7 +195,8 @@ BOOL CALLBACK DlgMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         int index = 0;
         int list_index = 0;
         std::string temp_list[4];
-        if(init_stack.depth_counter%4==0){
+        std::cout << init_stack.depth_counter;
+        if((init_stack.depth_counter)%4==0){
             while(index < init_stack.depth_counter){
                 temp_list[list_index]=init_stack.pop();
                 index++;
@@ -200,7 +217,6 @@ BOOL CALLBACK DlgMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
         int loader_index=server_list_memory.depth_counter-1;
         while(loader_index >= 0){
-            //std::cout << "_" << server_list_memory.read(loader_index).name << "_";
             SendDlgItemMessage(hwndDlg, IDC_LIST, LB_ADDSTRING, 0, (LPARAM)server_list_memory.read(loader_index).name.c_str());
             loader_index--;
         }
@@ -223,6 +239,12 @@ BOOL CALLBACK DlgMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (ret == IDOK){
             if(addressTypeCheck(buffAddr)!= -1){
                 int index = SendDlgItemMessage(hwndDlg, IDC_LIST, LB_ADDSTRING, 0, (LPARAM)buffName);
+                perm_stack_part temp_address_struct;
+                temp_address_struct.address.address = buffAddr;
+                temp_address_struct.address.name = buffName;
+                temp_address_struct.address.port = buffPort;
+                temp_address_struct.address.nick = "Gandalf";
+                add_server(temp_address_struct);
             }
             else{
                 MessageBox(hwndDlg, "Wrong address format.", "Error", MB_OK | MB_ICONINFORMATION);
