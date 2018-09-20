@@ -1,8 +1,8 @@
 #include "stack.h"
 
-/**********************/
-///tempStack
-/**********************/
+//--------------------//
+//tempStack
+//--------------------//
 
 temp_stack::temp_stack(){
     top = NULL;
@@ -35,14 +35,14 @@ std::string temp_stack::pop(){
     return(output);
 }
 
-/**********************/
-/**********************/
-/**********************/
+//--------------------//
+//--------------------//
+//--------------------//
 
 
-/**********************/
-///permStack
-/**********************/
+//--------------------//
+//permStack
+//--------------------//
 
 perm_stack::perm_stack(){
     top = NULL;
@@ -108,6 +108,22 @@ serverAddress perm_stack::read(int index){
 
 }
 
-/**********************/
-/**********************/
-/**********************/
+BOOL perm_stack::del_index(int index){
+    perm_stack_part *holder = top;
+    perm_stack_part *deleter;
+
+    while(holder -> next != NULL){
+            std::cout << holder ->address.index;
+        if(holder -> next -> address.index == index){
+            deleter = holder -> next;
+            holder -> next = deleter -> next;
+            delete(deleter);
+            return 1;
+        }
+    }
+    return -1;
+}
+
+//--------------------//
+//--------------------//
+//--------------------//
