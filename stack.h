@@ -1,13 +1,14 @@
 #ifndef STACK_H_INCLUDED
 #define STACK_H_INCLUDED
 
+#include <windows.h>
 #include <iostream>
 #include "header.h"
 
 
-/**********************/
-///tempStack
-/**********************/
+//--------------------//
+//tempStack
+//--------------------//
 
 struct temp_stack_part{
     temp_stack_part *next;
@@ -24,14 +25,14 @@ private:
     temp_stack_part *top;
 };
 
-/**********************/
-/**********************/
-/**********************/
+//--------------------//
+//--------------------//
+//--------------------//
 
 
-/**********************/
-///permStack
-/**********************/
+//--------------------//
+//permStack
+//--------------------//
 
 struct perm_stack_part{
     perm_stack_part *next;
@@ -44,13 +45,14 @@ public:
     void push(std::string,std::string,int16_t,std::string);
     serverAddress pop();
     serverAddress read(int);
+    BOOL del_index(int);
     int depth_counter;
 private:
     perm_stack_part *top;
 };
 
-/**********************/
-/**********************/
-/**********************/
+//--------------------//
+//--------------------//
+//--------------------//
 
 #endif // STACK_H_INCLUDED
