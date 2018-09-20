@@ -11,3 +11,4 @@
 #define IDC_ADDRESS                             1007
 #define IDC_PORT                                1008
 #define IDC_NAME                                40000
+#define IDC_NICK                                1009
