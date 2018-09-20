@@ -18,18 +18,12 @@ perm_stack server_list_memory;
 char* buffAddr;
 uint16_t buffPort;
 char* buffName;
+char* buffNick;
 
 bool add_server(perm_stack_part input){
-    std::fstream listFile;
-    listFile.open("serverlist.txt", std::ios::out|std::ios::in);
-    std::string line;
-    while(std::getline(listFile, line)){
-        if(line.length() == 0){
+    std::ofstream listFile;
+    listFile.open("serverlist.txt", std::ios::app);
             listFile << input.address.name << ":" << input.address.address << ":" << input.address.port << ":" << input.address.nick << ":" << "\n";
-            break;
-        }
-    std::cout << line.length();
-    }
     listFile.close();
 }
 
@@ -155,12 +149,15 @@ BOOL CALLBACK SaveDlg(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 {
                 int len = GetWindowTextLength(GetDlgItem(hwndDlg, IDC_ADDRESS));
                 int lenNam = GetWindowTextLength(GetDlgItem(hwndDlg, IDC_NAME));
+                int lenNik = GetWindowTextLength(GetDlgItem(hwndDlg, IDC_NICK));
 
                 buffAddr = (char*)GlobalAlloc(GPTR, len + 1);
                 buffName = (char*)GlobalAlloc(GPTR, lenNam + 1);
+                buffNick = (char*)GlobalAlloc(GPTR, lenNik + 1);
 
                 GetDlgItemText(hwndDlg, IDC_ADDRESS, buffAddr, len + 1);
                 GetDlgItemText(hwndDlg, IDC_NAME, buffName, lenNam + 1);
+                GetDlgItemText(hwndDlg, IDC_NICK, buffNick, lenNik + 1);
 
                 buffPort = GetDlgItemInt(hwndDlg, IDC_PORT, NULL, FALSE);
                 EndDialog(hwndDlg, IDOK);
@@ -195,7 +192,6 @@ BOOL CALLBACK DlgMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         int index = 0;
         int list_index = 0;
         std::string temp_list[4];
-        std::cout << init_stack.depth_counter;
         if((init_stack.depth_counter)%4==0){
             while(index < init_stack.depth_counter){
                 temp_list[list_index]=init_stack.pop();
@@ -233,18 +229,22 @@ BOOL CALLBACK DlgMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
         switch(LOWORD(wParam))
         {
+
+        {
         case IDC_ADD:
         int ret = DialogBox(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_SAVEDIL), hwndDlg, SaveDlg);
 
         if (ret == IDOK){
             if(addressTypeCheck(buffAddr)!= -1){
-                int index = SendDlgItemMessage(hwndDlg, IDC_LIST, LB_ADDSTRING, 0, (LPARAM)buffName);
+                SendDlgItemMessage(hwndDlg, IDC_LIST, LB_ADDSTRING, 0, (LPARAM)buffName);
                 perm_stack_part temp_address_struct;
                 temp_address_struct.address.address = buffAddr;
                 temp_address_struct.address.name = buffName;
                 temp_address_struct.address.port = buffPort;
-                temp_address_struct.address.nick = "Gandalf";
+                temp_address_struct.address.nick = buffNick;
                 add_server(temp_address_struct);
+                server_list_memory.push(temp_address_struct.address.name,temp_address_struct.address.address,temp_address_struct.address.port,temp_address_struct.address.nick);
+
             }
             else{
                 MessageBox(hwndDlg, "Wrong address format.", "Error", MB_OK | MB_ICONINFORMATION);
@@ -254,6 +254,21 @@ BOOL CALLBACK DlgMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
             MessageBox(hwndDlg, "Failed to open dialog.", "Error", MB_OK | MB_ICONINFORMATION);
         }
         break;
+        }
+
+
+        {
+        case IDC_REMOVE:
+            HWND hwndList = GetDlgItem(hwndDlg, IDC_LIST);
+
+            int select_index = (int)SendMessage(hwndList, LB_GETCURSEL, (WPARAM)0, (LPARAM)0);
+            BOOL err = server_list_memory.del_index(select_index);
+            if(err == -1){
+                std::cout << "Could not delete this server.";
+            }
+
+        break;
+        }
         }
     }
     return TRUE;
