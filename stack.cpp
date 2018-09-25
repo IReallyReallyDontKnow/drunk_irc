@@ -112,14 +112,26 @@ BOOL perm_stack::del_index(int index){
     perm_stack_part *holder = top;
     perm_stack_part *deleter;
 
-    while(holder -> next != NULL){
-            std::cout << holder ->address.index;
-        if(holder -> next -> address.index == index){
-            deleter = holder -> next;
-            holder -> next = deleter -> next;
-            delete(deleter);
-            return 1;
+    if(holder -> address.index == index){
+        top = holder -> next;
+        delete(holder);
+        return 1;
+    }
+    else{
+        do{
+            std::cout <<"-"<< holder -> address.index<<"-";
+            if(holder -> next -> address.index == index){
+                deleter = holder -> next;
+                holder -> next = deleter -> next;
+                delete(deleter);
+                std::cout << " IAMHEER ";
+                return 1;
+            }
+            holder -> address.index--;
+            std::cout <<"*"<< holder ->address.index<<"*";
+            holder = holder -> next;
         }
+        while(holder -> next != NULL);
     }
     return -1;
 }

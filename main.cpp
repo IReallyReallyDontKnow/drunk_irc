@@ -262,7 +262,9 @@ BOOL CALLBACK DlgMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
             HWND hwndList = GetDlgItem(hwndDlg, IDC_LIST);
 
             int select_index = (int)SendMessage(hwndList, LB_GETCURSEL, (WPARAM)0, (LPARAM)0);
+            std::cout << " >" << select_index << "< ";
             BOOL err = server_list_memory.del_index(select_index);
+            SendMessage(hwndList, LB_DELETESTRING, (WPARAM)select_index, (LPARAM)0);
             if(err == -1){
                 std::cout << "Could not delete this server.";
             }
