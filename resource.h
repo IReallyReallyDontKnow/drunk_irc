@@ -10,5 +10,6 @@
 #define IDSTORNO                                1006
 #define IDC_ADDRESS                             1007
 #define IDC_PORT                                1008
-#define IDC_NAME                                40000
 #define IDC_NICK                                1009
+#define IDC_NAME                                1010
+#define IDC_START                               1011

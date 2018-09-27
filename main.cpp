@@ -11,6 +11,8 @@
 
 HINSTANCE hInst;
 
+const char g_szClassName[] = "mainWinClass";
+
 serverAddress tempAddress;
 
 perm_stack server_list_memory;
@@ -20,10 +22,12 @@ uint16_t buffPort;
 char* buffName;
 char* buffNick;
 
-bool add_server(perm_stack_part input){
+int server_index;
+
+void add_server(perm_stack_part input){
     std::ofstream listFile;
     listFile.open("serverlist.txt", std::ios::app);
-            listFile << input.address.name << ":" << input.address.address << ":" << input.address.port << ":" << input.address.nick << ":" << "\n";
+    listFile << input.address.name << ":" << input.address.address << ":" << input.address.port << ":" << input.address.nick << ":" << "\n";
     listFile.close();
 }
 
@@ -104,7 +108,6 @@ bool loadList(temp_stack& para_stack){
     std::ifstream listFile;
     listFile.open("serverlist.txt", std::ios::out|std::ios::in);
     if(listFile.is_open()){
-        //para_stack = new Stack;
         std::string line;
         while(std::getline(listFile,line)){
             int str_index = 0;
@@ -126,10 +129,26 @@ bool loadList(temp_stack& para_stack){
     }
     else{
         listFile.open("serverlist.txt", std::ios::out|std::ios::in|std::ios::trunc);
-        std::cout << "NOPE";
+        std::cout << "No file present. Crating new file.";
         listFile.close();
         return false;
     }
+}
+
+LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+    switch(msg)
+    {
+        case WM_CLOSE:
+            DestroyWindow(hwnd);
+        break;
+        case WM_DESTROY:
+            PostQuitMessage(0);
+        break;
+        default:
+            return DefWindowProc(hwnd, msg, wParam, lParam);
+    }
+    return 0;
 }
 
 BOOL CALLBACK SaveDlg(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -227,7 +246,10 @@ BOOL CALLBACK DlgMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
     case WM_COMMAND:
     {
-        switch(LOWORD(wParam))
+        int wmId = LOWORD(wParam);
+        int wmEvent = HIWORD(wParam);
+
+        switch(wmId)
         {
 
         {
@@ -260,9 +282,7 @@ BOOL CALLBACK DlgMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
         case IDC_REMOVE:
             HWND hwndList = GetDlgItem(hwndDlg, IDC_LIST);
-
             int select_index = (int)SendMessage(hwndList, LB_GETCURSEL, (WPARAM)0, (LPARAM)0);
-            std::cout << " >" << select_index << "< ";
             BOOL err = server_list_memory.del_index(select_index);
             SendMessage(hwndList, LB_DELETESTRING, (WPARAM)select_index, (LPARAM)0);
             if(err == -1){
@@ -271,6 +291,23 @@ BOOL CALLBACK DlgMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         break;
         }
+
+        case IDC_START:
+            {
+            HWND hwndList = GetDlgItem(hwndDlg, IDC_LIST);
+            server_index = (int)SendMessage(hwndList, LB_GETCURSEL, (WPARAM)0, (LPARAM)0);
+            }
+        break;
+
+        case IDC_LIST:
+        {
+            if(wmEvent == LBN_DBLCLK){
+                HWND hwndList = GetDlgItem(hwndDlg, IDC_LIST);
+                server_index = (int)SendMessage(hwndList, LB_GETCURSEL, (WPARAM)0, (LPARAM)0);
+
+            }
+        }
+        break;
         }
     }
     return TRUE;
@@ -280,7 +317,56 @@ BOOL CALLBACK DlgMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
+
     hInst=hInstance;
     InitCommonControls();
-    return DialogBox(hInst, MAKEINTRESOURCE(IDD_MAIN), NULL, (DLGPROC)DlgMain);
+    WNDCLASSEX wc;
+    HWND hwnd;
+    MSG Msg;
+
+    //Step 1: Registering the Window Class
+    wc.cbSize        = sizeof(WNDCLASSEX);
+    wc.style         = 0;
+    wc.lpfnWndProc   = WndProc;
+    wc.cbClsExtra    = 0;
+    wc.cbWndExtra    = 0;
+    wc.hInstance     = hInstance;
+    wc.hIcon         = LoadIcon(NULL, IDI_APPLICATION);
+    wc.hCursor       = LoadCursor(NULL, IDC_ARROW);
+    wc.hbrBackground = (HBRUSH)(COLOR_WINDOW+1);
+    wc.lpszMenuName  = NULL;
+    wc.lpszClassName = g_szClassName;
+    wc.hIconSm       = LoadIcon(NULL, IDI_APPLICATION);
+
+    if(!RegisterClassEx(&wc))
+    {
+        MessageBox(NULL, "Window Registration Failed!", "Error!",
+            MB_ICONEXCLAMATION | MB_OK);
+        return 0;
+    }
+
+    hwnd = CreateWindowEx(
+        WS_EX_CLIENTEDGE,
+        g_szClassName,
+        "The title of my window",
+        WS_OVERLAPPEDWINDOW,
+        CW_USEDEFAULT, CW_USEDEFAULT, 240, 120,
+        NULL, NULL, hInstance, NULL);
+
+    if(hwnd == NULL)
+    {
+        MessageBox(NULL, "Window Creation Failed!", "Error!",
+            MB_ICONEXCLAMATION | MB_OK);
+        return 0;
+    }
+
+    DialogBox(hInst, MAKEINTRESOURCE(IDD_MAIN), NULL, (DLGPROC)DlgMain);
+    ShowWindow(hwnd, nShowCmd);
+    UpdateWindow(hwnd);
+    while(GetMessage(&Msg, NULL, 0, 0) > 0)
+    {
+        TranslateMessage(&Msg);
+        DispatchMessage(&Msg);
+    }
+    return Msg.wParam;
 }

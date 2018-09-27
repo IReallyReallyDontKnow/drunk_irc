@@ -112,6 +112,30 @@ BOOL perm_stack::del_index(int index){
     perm_stack_part *holder = top;
     perm_stack_part *deleter;
 
+    std::ifstream file;
+    file.open("serverlist.txt",std::ios::in);
+    if(file){
+        int num_line = depth_counter;
+        if(num_line < index){
+            std::cout << "No line to delete.";
+            return -1;
+        }
+        std::ofstream outfile;
+        outfile.open("temp.txt",std::ios::out);
+        char data;
+        int line_num = 0;
+        while(file.get(data)){
+            if(line_num != index) outfile << data;
+            if(data == '\n') line_num++;
+        }
+        outfile.close();
+        file.close();
+
+        std::remove("serverlist.txt");
+
+        std::rename("temp.txt","serverlist.txt");
+    }
+
     if(holder -> address.index == index){
         top = holder -> next;
         delete(holder);
@@ -119,16 +143,14 @@ BOOL perm_stack::del_index(int index){
     }
     else{
         do{
-            std::cout <<"-"<< holder -> address.index<<"-";
             if(holder -> next -> address.index == index){
+                holder -> address.index--;
                 deleter = holder -> next;
                 holder -> next = deleter -> next;
                 delete(deleter);
-                std::cout << " IAMHEER ";
                 return 1;
             }
             holder -> address.index--;
-            std::cout <<"*"<< holder ->address.index<<"*";
             holder = holder -> next;
         }
         while(holder -> next != NULL);
