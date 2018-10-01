@@ -9,8 +9,6 @@
 #include "header.h"
 #include "stack.h"
 
-HINSTANCE hInst;
-
 const char g_szClassName[] = "mainWinClass";
 
 serverAddress tempAddress;
@@ -22,7 +20,12 @@ uint16_t buffPort;
 char* buffName;
 char* buffNick;
 
-int server_index;
+int server_index = -1;
+
+HINSTANCE hInst;
+
+HWND textfield;
+HWND editctl;
 
 void add_server(perm_stack_part input){
     std::ofstream listFile;
@@ -145,6 +148,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         case WM_DESTROY:
             PostQuitMessage(0);
         break;
+        case WM_CREATE:
+            textfield = CreateWindow("STATIC","Hello", WS_VISIBLE | WS_CHILD ,20,20,300,25,hwnd, NULL, NULL, NULL);
+            editctl = CreateWindow( "edit", "",WS_VISIBLE|WS_CHILD|WS_BORDER|WS_VSCROLL|WS_HSCROLL|ES_MULTILINE|ES_WANTRETURN|ES_AUTOHSCROLL|ES_AUTOVSCROLL|ES_READONLY,30, 40, 200, 250, hwnd, NULL, hInst, NULL);
+        break;
         default:
             return DefWindowProc(hwnd, msg, wParam, lParam);
     }
@@ -155,10 +162,6 @@ BOOL CALLBACK SaveDlg(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     switch(uMsg)
     {
-        case WM_INITDIALOG:
-        {
-        }
-        return TRUE;
 
         case WM_COMMAND:
         {
@@ -240,7 +243,7 @@ BOOL CALLBACK DlgMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
     case WM_CLOSE:
     {
-        EndDialog(hwndDlg, 0);
+        EndDialog(hwndDlg, -1);
     }
     return TRUE;
 
@@ -293,17 +296,17 @@ BOOL CALLBACK DlgMain(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
 
         case IDC_START:
-            {
+        {
             HWND hwndList = GetDlgItem(hwndDlg, IDC_LIST);
-            server_index = (int)SendMessage(hwndList, LB_GETCURSEL, (WPARAM)0, (LPARAM)0);
-            }
+            EndDialog(hwndDlg,(int)SendMessage(hwndList, LB_GETCURSEL, (WPARAM)0, (LPARAM)0));
+        }
         break;
 
         case IDC_LIST:
         {
             if(wmEvent == LBN_DBLCLK){
                 HWND hwndList = GetDlgItem(hwndDlg, IDC_LIST);
-                server_index = (int)SendMessage(hwndList, LB_GETCURSEL, (WPARAM)0, (LPARAM)0);
+                EndDialog(hwndDlg,(int)SendMessage(hwndList, LB_GETCURSEL, (WPARAM)0, (LPARAM)0));
 
             }
         }
@@ -345,12 +348,14 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         return 0;
     }
 
+
+
     hwnd = CreateWindowEx(
         WS_EX_CLIENTEDGE,
         g_szClassName,
-        "The title of my window",
+        "DrunkIRC",
         WS_OVERLAPPEDWINDOW,
-        CW_USEDEFAULT, CW_USEDEFAULT, 240, 120,
+        CW_USEDEFAULT, CW_USEDEFAULT, 800, 600,
         NULL, NULL, hInstance, NULL);
 
     if(hwnd == NULL)
@@ -360,8 +365,12 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         return 0;
     }
 
-    DialogBox(hInst, MAKEINTRESOURCE(IDD_MAIN), NULL, (DLGPROC)DlgMain);
-    ShowWindow(hwnd, nShowCmd);
+    server_index = DialogBox(hInstance, MAKEINTRESOURCE(IDD_MAIN), NULL, (DLGPROC)DlgMain);
+    if(server_index == -1)
+    {
+        return 0;
+    }
+    ShowWindow(hwnd,nShowCmd);
     UpdateWindow(hwnd);
     while(GetMessage(&Msg, NULL, 0, 0) > 0)
     {
