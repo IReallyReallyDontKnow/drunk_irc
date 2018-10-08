@@ -11,9 +11,10 @@
 #include "resource.h"
 #include "header.h"
 #include "stack.h"
-#include "irc.cpp"
 
 const char g_szClassName[] = "mainWinClass";
+const char textWinName[] = "textOutWinClass";
+const char textInWinName[] = "textInWinClass";
 
 serverAddress tempAddress;
 
@@ -27,11 +28,12 @@ char* buffNick;
 int server_index = -1;
 
 HINSTANCE hInst;
+int showCmd;
 
 HWND textfield;
-HWND editctl;
+HWND inputbar;
 
-RECT rect;
+RECTL rect;
 
 //******//
 //******//
@@ -378,6 +380,27 @@ bool loadList(temp_stack& para_stack){
     }
 }
 
+LRESULT CALLBACK textBoxProc(HWND textfield, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+    switch(msg){
+        case WM_CLOSE:
+            DestroyWindow(textfield);
+        break;
+        case WM_DESTROY:
+            PostQuitMessage(0);
+        break;
+        case WM_CREATE:
+        break;
+        case WM_PAINT:
+
+        break;
+        default:
+
+        return DefWindowProc(textfield, msg, wParam, lParam);
+    }
+    return 0;
+}
+
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
     switch(msg)
@@ -390,13 +413,39 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         break;
         case WM_CREATE:
             {
-            int width = rect.right - rect.left;
-            int height = rect.bottom - rect.top;
-            textfield = CreateWindow("EDIT",NULL, WS_VISIBLE | WS_CHILD | WS_BORDER | ES_AUTOHSCROLL | ES_WANTRETURN , 20, height, 300, 25, hwnd, NULL, NULL, NULL);
-            editctl = CreateWindow( "edit", NULL, WS_VISIBLE | WS_CHILD | WS_BORDER | ES_MULTILINE | ES_AUTOHSCROLL | ES_AUTOVSCROLL | ES_READONLY, 30, 30, 200, 250, hwnd, NULL, hInst, NULL);
-            }
+            textfield = CreateWindow(
+                (LPCTSTR)textWinName,
+                "textBox",
+                WS_BORDER | WS_CHILD | WS_VSCROLL | ES_AUTOHSCROLL | ES_MULTILINE | ES_READONLY,
+                0, 0, 300, 600,
+                hwnd, NULL ,hInst, NULL);
+
+            inputbar = CreateWindow(
+                textInWinName,
+                "inputBox",
+                WS_BORDER | WS_CHILD | ES_WANTRETURN | ES_MULTILINE,
+                0,
+                ((float)(rect.bottom - rect.top) / 100) * 85,
+                ((float)(rect.right - rect.left) / 100) * 75,
+                ((float)(rect.bottom - rect.top) / 100) * 25,
+                hwnd, NULL, hInst, NULL);
+
+                ShowWindow(textfield,showCmd);
+                UpdateWindow(textfield);
+        }
+        break;
+        case WM_SIZE:
+            GetWindowRect(hwnd, (LPRECT)&rect);
+
+            MoveWindow(textfield,
+                       0, 0,
+                       ((float)(rect.right - rect.left) / 100) * 75,
+                       ((float)(rect.bottom - rect.top) / 100) * 85,
+                       TRUE);
         break;
         default:
+            //GetWindowRect(hwnd, (LPRECT)&rect);
+            //SetWindowPos(editctl, HWND_TOP, 20,(rect.bottom - rect.top)+20,300,25,NULL);
             return DefWindowProc(hwnd, msg, wParam, lParam);
     }
     return 0;
@@ -572,12 +621,12 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 {
 
     hInst=hInstance;
+    showCmd = nShowCmd;
     InitCommonControls();
     WNDCLASSEX wc;
     HWND hwnd;
     MSG Msg;
 
-    //Step 1: Registering the Window Class
     wc.cbSize        = sizeof(WNDCLASSEX);
     wc.style         = 0;
     wc.lpfnWndProc   = WndProc;
@@ -598,6 +647,49 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         return 0;
     }
 
+    WNDCLASSEX txWc;
+
+    txWc.cbSize        = sizeof(WNDCLASSEX);
+    txWc.style         = 0;
+    txWc.lpfnWndProc   = textBoxProc;
+    txWc.cbClsExtra    = 0;
+    txWc.cbWndExtra    = 0;
+    txWc.hInstance     = hInstance;
+    txWc.hIcon         = LoadIcon(NULL, IDI_APPLICATION);
+    txWc.hCursor       = LoadCursor(NULL, IDC_ARROW);
+    txWc.hbrBackground = (HBRUSH)(COLOR_WINDOW+1);
+    txWc.lpszMenuName  = NULL;
+    txWc.lpszClassName = textWinName;
+    txWc.hIconSm       = LoadIcon(NULL, IDI_APPLICATION);
+
+    if(!RegisterClassEx(&txWc))
+    {
+        MessageBox(NULL, "Window Registration Failed!", "Error!",
+            MB_ICONEXCLAMATION | MB_OK);
+        return 0;
+    }
+
+    WNDCLASSEX inpWc;
+
+    inpWc.cbSize        = sizeof(WNDCLASSEX);
+    inpWc.style         = 0;
+    inpWc.lpfnWndProc   = //TODO - Write procedure function for this//;
+    inpWc.cbClsExtra    = 0;
+    inpWc.cbWndExtra    = 0;
+    inpWc.hInstance     = hInstance;
+    inpWc.hIcon         = LoadIcon(NULL, IDI_APPLICATION);
+    inpWc.hCursor       = LoadCursor(NULL, IDC_ARROW);
+    inpWc.hbrBackground = (HBRUSH)(COLOR_WINDOW+1);
+    inpWc.lpszMenuName  = NULL;
+    inpWc.lpszClassName = textInWinName;
+    inpWc.hIconSm       = LoadIcon(NULL, IDI_APPLICATION);
+
+    if(!RegisterClassEx(&inpWc))
+    {
+        MessageBox(NULL, "Window Registration Failed!", "Error!",
+            MB_ICONEXCLAMATION | MB_OK);
+        return 0;
+    }
 
 
     hwnd = CreateWindowEx(
@@ -607,6 +699,8 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         WS_OVERLAPPEDWINDOW,
         CW_USEDEFAULT, CW_USEDEFAULT, 800, 600,
         NULL, NULL, hInstance, NULL);
+
+
 
     if(hwnd == NULL)
     {
