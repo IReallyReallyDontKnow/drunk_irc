@@ -13,3 +13,4 @@
 #define IDC_NICK                                1009
 #define IDC_NAME                                1010
 #define IDC_START                               1011
+#define IDC_INPUTBOX                            1012

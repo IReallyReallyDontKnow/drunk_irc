@@ -380,6 +380,27 @@ bool loadList(temp_stack& para_stack){
     }
 }
 
+LRESULT CALLBACK inputBoxProc(HWND inputbar, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+    switch(msg){
+        case WM_CLOSE:
+            DestroyWindow(inputbar);
+        break;
+        case WM_DESTROY:
+            PostQuitMessage(0);
+        break;
+        case WM_CREATE:
+        break;
+        case WM_PAINT:
+
+        break;
+        default:
+
+        return DefWindowProc(inputbar, msg, wParam, lParam);
+    }
+    return 0;
+}
+
 LRESULT CALLBACK textBoxProc(HWND textfield, UINT msg, WPARAM wParam, LPARAM lParam)
 {
     switch(msg){
@@ -411,41 +432,67 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         case WM_DESTROY:
             PostQuitMessage(0);
         break;
+
+        case WM_COMMAND:
+            switch(LOWORD(wParam))
+            {
+            case IDC_INPUTBOX:
+                char* line;
+                GetDlgItemText(hwnd, IDC_INPUTBOX, line, 100);
+                MessageBox(NULL, line, "Stuff", MB_ICONINFORMATION | MB_OK);
+            break;
+            }
+        break;
         case WM_CREATE:
             {
+            GetWindowRect(hwnd, (LPRECT)&rect);
+
             textfield = CreateWindow(
                 (LPCTSTR)textWinName,
                 "textBox",
-                WS_BORDER | WS_CHILD | WS_VSCROLL | ES_AUTOHSCROLL | ES_MULTILINE | ES_READONLY,
-                0, 0, 300, 600,
+                WS_BORDER | WS_CHILD | WS_VSCROLL | ES_AUTOHSCROLL | ES_MULTILINE | ES_READONLY | ES_LEFT,
+                0,
+                0,
+                300,
+                600,
                 hwnd, NULL ,hInst, NULL);
 
-            inputbar = CreateWindow(
-                textInWinName,
+            inputbar = CreateWindowEx(
+                WS_EX_CLIENTEDGE,
+                (LPCTSTR)textInWinName,
                 "inputBox",
-                WS_BORDER | WS_CHILD | ES_WANTRETURN | ES_MULTILINE,
+                WS_BORDER | WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_AUTOVSCROLL | ES_MULTILINE | ES_LEFT,
                 0,
                 ((float)(rect.bottom - rect.top) / 100) * 85,
                 ((float)(rect.right - rect.left) / 100) * 75,
                 ((float)(rect.bottom - rect.top) / 100) * 25,
-                hwnd, NULL, hInst, NULL);
+                hwnd, (HMENU)IDC_INPUTBOX, hInst, NULL);
 
-                ShowWindow(textfield,showCmd);
-                UpdateWindow(textfield);
+            ShowWindow(textfield,showCmd);
+            ShowWindow(inputbar,showCmd);
+            UpdateWindow(textfield);
+            UpdateWindow(inputbar);
         }
         break;
         case WM_SIZE:
             GetWindowRect(hwnd, (LPRECT)&rect);
 
             MoveWindow(textfield,
-                       0, 0,
-                       ((float)(rect.right - rect.left) / 100) * 75,
-                       ((float)(rect.bottom - rect.top) / 100) * 85,
-                       TRUE);
+                0,
+                0,
+                ((float)(rect.right - rect.left) / 100) * 75,
+                ((float)(rect.bottom - rect.top) / 100) * 85,
+                TRUE);
+
+            MoveWindow(inputbar,
+                0,
+                ((float)(rect.bottom - rect.top) / 100) * 85,
+                ((float)(rect.right - rect.left) / 100) * 75,
+                ((float)(rect.bottom - rect.top) / 100) * 25,
+                TRUE);
+
         break;
         default:
-            //GetWindowRect(hwnd, (LPRECT)&rect);
-            //SetWindowPos(editctl, HWND_TOP, 20,(rect.bottom - rect.top)+20,300,25,NULL);
             return DefWindowProc(hwnd, msg, wParam, lParam);
     }
     return 0;
@@ -673,7 +720,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
     inpWc.cbSize        = sizeof(WNDCLASSEX);
     inpWc.style         = 0;
-    inpWc.lpfnWndProc   = //TODO - Write procedure function for this//;
+    inpWc.lpfnWndProc   = inputBoxProc;
     inpWc.cbClsExtra    = 0;
     inpWc.cbWndExtra    = 0;
     inpWc.hInstance     = hInstance;
@@ -691,7 +738,6 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         return 0;
     }
 
-
     hwnd = CreateWindowEx(
         WS_EX_CLIENTEDGE,
         g_szClassName,
@@ -699,8 +745,6 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         WS_OVERLAPPEDWINDOW,
         CW_USEDEFAULT, CW_USEDEFAULT, 800, 600,
         NULL, NULL, hInstance, NULL);
-
-
 
     if(hwnd == NULL)
     {
