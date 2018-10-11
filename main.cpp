@@ -32,8 +32,15 @@ int showCmd;
 
 HWND textfield;
 HWND inputbar;
+HWND button;
 
 RECTL rect;
+
+LPTSTR replace(std::string str, std::string from, std::string to) {
+    size_t start_pos = str.find(from);
+    str.replace(start_pos, from.length(), to);
+    return (LPTSTR)str.c_str();
+}
 
 //******//
 //******//
@@ -59,7 +66,9 @@ void addlog (const char * fmt, ...)
 #endif
 	va_end (va_alist);
 
-	printf ("%s\n", buf);
+	//printf ("%s\n", buf);
+
+	SetWindowText(textfield, replace("%s\n","%s",buf));
 
 	if ( (fp = fopen ("irctest.log", "ab")) != 0 )
 	{
@@ -379,7 +388,7 @@ bool loadList(temp_stack& para_stack){
         return false;
     }
 }
-
+/*
 LRESULT CALLBACK inputBoxProc(HWND inputbar, UINT msg, WPARAM wParam, LPARAM lParam)
 {
     switch(msg){
@@ -400,7 +409,7 @@ LRESULT CALLBACK inputBoxProc(HWND inputbar, UINT msg, WPARAM wParam, LPARAM lPa
     }
     return 0;
 }
-
+*/
 LRESULT CALLBACK textBoxProc(HWND textfield, UINT msg, WPARAM wParam, LPARAM lParam)
 {
     switch(msg){
@@ -433,13 +442,22 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             PostQuitMessage(0);
         break;
 
+        case WM_KEYDOWN:
+            switch (LOWORD(wParam)){
+                case VK_RETURN:
+                    char* line;
+                    GetDlgItemText(hwnd, IDC_INPUTBOX, (LPTSTR)line, 100);
+                    SetWindowText(inputbar, "");
+                break;
+            }
+        break;
         case WM_COMMAND:
             switch(LOWORD(wParam))
             {
-            case IDC_INPUTBOX:
+            case IDC_BUTTON:
                 char* line;
-                GetDlgItemText(hwnd, IDC_INPUTBOX, line, 100);
-                MessageBox(NULL, line, "Stuff", MB_ICONINFORMATION | MB_OK);
+                GetDlgItemText(hwnd, IDC_INPUTBOX, (LPTSTR)line, 100);
+                SetWindowText(inputbar, "");
             break;
             }
         break;
@@ -448,8 +466,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             GetWindowRect(hwnd, (LPRECT)&rect);
 
             textfield = CreateWindow(
-                (LPCTSTR)textWinName,
-                "textBox",
+                "EDIT",
+                0,
                 WS_BORDER | WS_CHILD | WS_VSCROLL | ES_AUTOHSCROLL | ES_MULTILINE | ES_READONLY | ES_LEFT,
                 0,
                 0,
@@ -457,21 +475,32 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 600,
                 hwnd, NULL ,hInst, NULL);
 
-            inputbar = CreateWindowEx(
-                WS_EX_CLIENTEDGE,
-                (LPCTSTR)textInWinName,
-                "inputBox",
+            inputbar = CreateWindow(
+                "EDIT",
+                0,
                 WS_BORDER | WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_AUTOVSCROLL | ES_MULTILINE | ES_LEFT,
                 0,
                 ((float)(rect.bottom - rect.top) / 100) * 85,
-                ((float)(rect.right - rect.left) / 100) * 75,
+                ((float)(rect.right - rect.left) / 100) * 50,
                 ((float)(rect.bottom - rect.top) / 100) * 25,
                 hwnd, (HMENU)IDC_INPUTBOX, hInst, NULL);
 
+            button = CreateWindow(
+                "BUTTON",
+                "ENTER",
+                WS_TABSTOP | WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON,
+                ((float)(rect.right - rect.left) / 100) * 50,
+                ((float)(rect.bottom - rect.top) / 100) * 85,
+                ((float)(rect.right - rect.left) / 100) * 25,
+                ((float)(rect.bottom - rect.top) / 100) * 25,
+                hwnd, (HMENU)IDC_BUTTON, hInst, NULL);
+
             ShowWindow(textfield,showCmd);
             ShowWindow(inputbar,showCmd);
+            ShowWindow(button, showCmd);
             UpdateWindow(textfield);
             UpdateWindow(inputbar);
+            UpdateWindow(button);
         }
         break;
         case WM_SIZE:
@@ -487,7 +516,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             MoveWindow(inputbar,
                 0,
                 ((float)(rect.bottom - rect.top) / 100) * 85,
-                ((float)(rect.right - rect.left) / 100) * 75,
+                ((float)(rect.right - rect.left) / 100) * 50,
+                ((float)(rect.bottom - rect.top) / 100) * 25,
+                TRUE);
+
+            MoveWindow(button,
+                ((float)(rect.right - rect.left) / 100) * 50,
+                ((float)(rect.bottom - rect.top) / 100) * 85,
+                ((float)(rect.right - rect.left) / 100) * 25,
                 ((float)(rect.bottom - rect.top) / 100) * 25,
                 TRUE);
 
@@ -715,7 +751,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
             MB_ICONEXCLAMATION | MB_OK);
         return 0;
     }
-
+/*
     WNDCLASSEX inpWc;
 
     inpWc.cbSize        = sizeof(WNDCLASSEX);
@@ -737,7 +773,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
             MB_ICONEXCLAMATION | MB_OK);
         return 0;
     }
-
+*/
     hwnd = CreateWindowEx(
         WS_EX_CLIENTEDGE,
         g_szClassName,
@@ -788,7 +824,6 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	callbacks.event_dcc_chat_req = irc_event_dcc_chat;
 	callbacks.event_dcc_send_req = irc_event_dcc_send;
 
-
     irc_session_t * session = irc_create_session(&callbacks);
     if(!session){
         std::cout << "Error with creating session.";
@@ -801,7 +836,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
     irc_option_set(session, LIBIRC_OPTION_STRIPNICKS);
 
-    if(irc_connect(session, "192.168.1.108", 6686, NULL, "NaMe","nAmE","UNKNOWN")){
+    if(irc_connect(session, "93.99.163.66", 6686, NULL, "NaMe","nAmE","UNKNOWN")){
         std::cout << "Error with connecting.";
     }
 
