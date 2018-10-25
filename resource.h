@@ -14,3 +14,4 @@
 #define IDC_NAME                                1010
 #define IDC_START                               1011
 #define IDC_INPUTBOX                            1012
+#define IDC_BUTTON                              1013
