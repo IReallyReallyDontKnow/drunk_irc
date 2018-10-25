@@ -133,25 +133,29 @@ void dcc_recv_callback (irc_session_t * session, irc_dcc_t id, int status, void 
 	switch (status)
 	{
 	case LIBIRC_ERR_CLOSED:
-		printf ("DCC %d: chat closed\n", id);
+	    SetWindowText(textfield, replace("DCC %d: chat closed\n","%d",(const int)id));
+		//printf ("DCC %d: chat closed\n", id);
 		break;
 
 	case 0:
 		if ( !data )
 		{
-			printf ("DCC %d: chat connected\n", id);
+		    SetWindowText(textfield, replace("DCC %d: chat connected\n","%d",id));
+			//printf ("DCC %d: chat connected\n", id);
 			irc_dcc_msg	(session, id, "Hehe");
 		}
 		else
 		{
-			printf ("DCC %d: %s\n", id, data);
+            SetWindowText(textfield, replace(replace("DCC %d: %s\n","%d",id),"%s",data));
+			//printf ("DCC %d: %s\n", id, data);
 			sprintf (buf, "DCC [%d]: %d", id, count++);
 			irc_dcc_msg	(session, id, buf);
 		}
 		break;
 
 	default:
-		printf ("DCC %d: error %s\n", id, irc_strerror(status));
+        SetWindowText(textfield, replace(replace("DCC %d: error %s\n","%d",id),"%s",irc_strerror(status)));
+		//printf ("DCC %d: error %s\n", id, irc_strerror(status));
 		break;
 	}
 }
@@ -829,14 +833,14 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         std::cout << "Error with creating session.";
     }
 
-    ctx.channel = "#NUMBER_NINE";
+    ctx.channel = "#general";
     ctx.nick = "NaMe";
 
     irc_set_ctx(session, &ctx);
 
     irc_option_set(session, LIBIRC_OPTION_STRIPNICKS);
 
-    if(irc_connect(session, "93.99.163.66", 6686, NULL, "NaMe","nAmE","UNKNOWN")){
+    if(irc_connect(session, "irc.bazina.tk", 6667, NULL, "NaMe","nAmE","UNKNOWN")){
         std::cout << "Error with connecting.";
     }
 
