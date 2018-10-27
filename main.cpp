@@ -67,12 +67,12 @@ void addlog (const char * fmt, ...)
 	va_end (va_alist);
 
 	//printf ("%s\n", buf);
-
-	SetWindowText(textfield, replace("%s\n","%s",buf));
+    SendMessage(textfield, EM_REPLACESEL, 0, (LPARAM)(replace("%s\r\n","%s",buf)));
+	//SetWindowText(textfield, replace("%s\n","%s",buf));
 
 	if ( (fp = fopen ("irctest.log", "ab")) != 0 )
 	{
-		fprintf (fp, "%s\n", buf);
+		fprintf (fp, "%s\r\n", buf);
 		fclose (fp);
 	}
 }
@@ -119,7 +119,8 @@ void event_privmsg (irc_session_t * session, const char * event, const char * or
 {
 	dump_event (session, event, origin, params, count);
 
-	SetWindowText(textfield, replace(replace(replace("'%s' said me (%2): %3\n","%s",origin ? origin : "someone"),"%2",params[0]),"%3",params[1]));
+    SendMessage(textfield, EM_REPLACESEL, 0, (LPARAM)(replace(replace(replace("'%s' said me (%2): %3\r\n","%s",origin ? origin : "someone"),"%2",params[0]),"%3",params[1])));
+	//SetWindowText(textfield, replace(replace(replace("'%s' said me (%2): %3\n","%s",origin ? origin : "someone"),"%2",params[0]),"%3",params[1]));
 	/*printf ("'%s' said me (%s): %s\n",
 		origin ? origin : "someone",
 		params[0], params[1] );*/
@@ -134,20 +135,24 @@ void dcc_recv_callback (irc_session_t * session, irc_dcc_t id, int status, void 
 	switch (status)
 	{
 	case LIBIRC_ERR_CLOSED:
-	    SetWindowText(textfield, replace("DCC %d: chat closed\n","%d",(char*)id));
+
+        SendMessage(textfield, EM_REPLACESEL, 0, (LPARAM)(replace("DCC %d: chat closed\r\n","%d",(char*)id)));
+	    //SetWindowText(textfield, replace("DCC %d: chat closed\n","%d",(char*)id));
 		//printf ("DCC %d: chat closed\n", id);
 		break;
 
 	case 0:
 		if ( !data )
 		{
-		    SetWindowText(textfield, replace("DCC %d: chat connected\n","%d",(char*)id));
+            SendMessage(textfield, EM_REPLACESEL, 0, (LPARAM)(replace("DCC %d: chat connected\r\n","%d",(char*)id)));
+		    //SetWindowText(textfield, replace("DCC %d: chat connected\n","%d",(char*)id));
 			//printf ("DCC %d: chat connected\n", id);
 			irc_dcc_msg	(session, id, "Hehe");
 		}
 		else
 		{
-            SetWindowText(textfield, replace(replace("DCC %d: %s\n","%d",(char*)id),"%s",(char*)data));
+            SendMessage(textfield, EM_REPLACESEL, 0, (LPARAM)(replace(replace("DCC %d: %s\r\n","%d",(char*)id),"%s",(char*)data)));
+            //SetWindowText(textfield, replace(replace("DCC %d: %s\n","%d",(char*)id),"%s",(char*)data));
 			//printf ("DCC %d: %s\n", id, data);
 			sprintf (buf, "DCC [%d]: %d", id, count++);
 			irc_dcc_msg	(session, id, buf);
@@ -155,7 +160,8 @@ void dcc_recv_callback (irc_session_t * session, irc_dcc_t id, int status, void 
 		break;
 
 	default:
-        SetWindowText(textfield, replace(replace("DCC %d: error %s\n","%d",(char*)id),"%s",irc_strerror(status)));
+        SendMessage(textfield, EM_REPLACESEL, 0, (LPARAM)(replace(replace("DCC %d: error %s\r\n","%d",(char*)id),"%s",irc_strerror(status))));
+        //SetWindowText(textfield, replace(replace("DCC %d: error %s\n","%d",(char*)id),"%s",irc_strerror(status)));
 		//printf ("DCC %d: error %s\n", id, irc_strerror(status));
 		break;
 	}
@@ -166,7 +172,8 @@ void dcc_file_recv_callback (irc_session_t * session, irc_dcc_t id, int status, 
 {
 	if ( status == 0 && length == 0 )
 	{
-	    SetWindowText(textfield,"File sent successfully\n");
+        SendMessage(textfield, EM_REPLACESEL, 0, (LPARAM)("File sent successfully\r\n"));
+	    //SetWindowText(textfield,"File sent successfully\n");
 		//printf ("File sent successfully\n");
 
 		if ( ctx )
@@ -174,7 +181,8 @@ void dcc_file_recv_callback (irc_session_t * session, irc_dcc_t id, int status, 
 	}
 	else if ( status )
 	{
-        SetWindowText(textfield, replace("File sent error: %d\n","%d", (char*)status));
+        SendMessage(textfield, EM_REPLACESEL, 0, (LPARAM)(replace("File sent error: %d\r\n","%d", (char*)status)));
+        //SetWindowText(textfield, replace("File sent error: %d\n","%d", (char*)status));
 		//printf ("File sent error: %d\n", status);
 
 		if ( ctx )
@@ -184,7 +192,8 @@ void dcc_file_recv_callback (irc_session_t * session, irc_dcc_t id, int status, 
 	{
 		if ( ctx )
 			fwrite (data, 1, length, (FILE*) ctx);
-        SetWindowText(textfield, replace("File sent progress: %d\n","%d", (char*)length));
+        SendMessage(textfield, EM_REPLACESEL, 0, (LPARAM)(replace("File sent progress: %d\r\n","%d", (char*)length)));
+        //SetWindowText(textfield, replace("File sent progress: %d\n","%d", (char*)length));
 		//printf ("File sent progress: %d\n", length);
 	}
 }
@@ -197,7 +206,8 @@ void event_channel (irc_session_t * session, const char * event, const char * or
 	if ( count != 2 )
 		return;
 
-    SetWindowText(textfield, replace(replace(replace("'%s' said in channel %2: %3\n","%s",origin ? origin : "someone"),"%2",params[0]),"%3",params[1]));
+    SendMessage(textfield, EM_REPLACESEL, 0, (LPARAM)(replace(replace(replace("'%s' said in channel %2: %3\r\n","%s",origin ? origin : "someone"),"%2",params[0]),"%3",params[1])));
+    //SetWindowText(textfield, replace(replace(replace("'%s' said in channel %2: %3\n","%s",origin ? origin : "someone"),"%2",params[0]),"%3",params[1]));
 	/*printf ("'%s' said in channel %s: %s\n",
 		origin ? origin : "someone",
 		params[0], params[1] );*/
@@ -227,7 +237,9 @@ void event_channel (irc_session_t * session, const char * event, const char * or
 	{
 		irc_dcc_t dccid;
 		irc_dcc_chat (session, 0, nickbuf, dcc_recv_callback, &dccid);
-		SetWindowText(textfield, replace("DCC chat ID: %d\n","%d", (char*)dccid));
+
+        SendMessage(textfield, EM_REPLACESEL, 0, (LPARAM)(replace("DCC chat ID: %d\r\n","%d", (char*)dccid)));
+		//SetWindowText(textfield, replace("DCC chat ID: %d\n","%d", (char*)dccid));
 		//printf ("DCC chat ID: %d\n", dccid);
 	}
 
@@ -235,7 +247,9 @@ void event_channel (irc_session_t * session, const char * event, const char * or
 	{
 		irc_dcc_t dccid;
 		irc_dcc_sendfile (session, 0, nickbuf, "irctest.c", dcc_file_recv_callback, &dccid);
-		SetWindowText(textfield, replace("DCC send ID: %d\n","%d", (char*)dccid));
+
+        SendMessage(textfield, EM_REPLACESEL, 0, (LPARAM)(replace("DCC send ID: %d\r\n","%d", (char*)dccid)));
+		//SetWindowText(textfield, replace("DCC send ID: %d\n","%d", (char*)dccid));
 		//printf ("DCC send ID: %d\n", dccid);
 	}
 
@@ -257,7 +271,8 @@ void event_channel (irc_session_t * session, const char * event, const char * or
 
 void irc_event_dcc_chat (irc_session_t * session, const char * nick, const char * addr, irc_dcc_t dccid)
 {
-    SetWindowText(textfield, replace(replace(replace("DCC chat [%d] requested from '%s' (%2)\n","%d", (char*)dccid),"%s",nick),"%2",addr));
+    SendMessage(textfield, EM_REPLACESEL, 0, (LPARAM)(replace(replace(replace("DCC chat [%d] requested from '%s' (%2)\r\n","%d", (char*)dccid),"%s",nick),"%2",addr)));
+    //SetWindowText(textfield, replace(replace(replace("DCC chat [%d] requested from '%s' (%2)\n","%d", (char*)dccid),"%s",nick),"%2",addr));
 	//printf ("DCC chat [%d] requested from '%s' (%s)\n", dccid, nick, addr);
 
 	irc_dcc_accept (session, dccid, 0, dcc_recv_callback);
@@ -267,7 +282,9 @@ void irc_event_dcc_chat (irc_session_t * session, const char * nick, const char 
 void irc_event_dcc_send (irc_session_t * session, const char * nick, const char * addr, const char * filename, unsigned long size, irc_dcc_t dccid)
 {
 	FILE * fp;
-	SetWindowText(textfield, replace(replace(replace(replace("DCC send [%d] requested from '%s' (%2): %3 (%lu bytes)\n", "%d", (char*)dccid),"%s",nick),"%2",addr),"lu",(char*)size));
+
+    SendMessage(textfield, EM_REPLACESEL, 0, (LPARAM)(replace(replace(replace(replace("DCC send [%d] requested from '%s' (%2): %3 (%lu bytes)\r\n", "%d", (char*)dccid),"%s",nick),"%2",addr),"lu",(char*)size)));
+	//SetWindowText(textfield, replace(replace(replace(replace("DCC send [%d] requested from '%s' (%2): %3 (%lu bytes)\n", "%d", (char*)dccid),"%s",nick),"%2",addr),"lu",(char*)size));
 	//printf ("DCC send [%d] requested from '%s' (%s): %s (%lu bytes)\n", dccid, nick, addr, filename, size);
 
 	if ( (fp = fopen ("file", "wb")) == 0 )
@@ -285,7 +302,6 @@ void event_numeric (irc_session_t * session, unsigned int event, const char * or
 }
 
 void loopRun(irc_session_t*);
-
 
 //*********//
 //*********//
@@ -458,7 +474,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         case WM_KEYDOWN:
             switch (LOWORD(wParam)){
                 case VK_RETURN:
-                    char* line;
+                    char* line = new char[3600];
                     GetDlgItemText(hwnd, IDC_INPUTBOX, (LPTSTR)line, 100);
                     SetWindowText(inputbar, "");
                 break;
@@ -468,8 +484,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             switch(LOWORD(wParam))
             {
             case IDC_BUTTON:
-                char* line;
+                char* line = new char[3600];
                 GetDlgItemText(hwnd, IDC_INPUTBOX, (LPTSTR)line, 100);
+                irc_cmd_msg(session,"#NUMBER_NINE",line);
                 SetWindowText(inputbar, "");
             break;
             }
@@ -481,7 +498,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             textfield = CreateWindow(
                 "EDIT",
                 0,
-                WS_BORDER | WS_CHILD | WS_VSCROLL | ES_AUTOHSCROLL | ES_MULTILINE | ES_READONLY | ES_LEFT,
+                WS_BORDER | WS_CHILD | WS_VSCROLL | WS_HSCROLL | ES_AUTOHSCROLL | ES_MULTILINE | ES_READONLY | ES_LEFT,
                 0,
                 0,
                 300,
@@ -514,7 +531,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             UpdateWindow(textfield);
             UpdateWindow(inputbar);
             UpdateWindow(button);
-            SetWindowText(textfield, "HELOOO");
+            int ndx = GetWindowTextLength(textfield);
+            SetFocus(textfield);
+            SendMessage(textfield, EM_SETSEL, (WPARAM)ndx,(LPARAM)ndx);
+
+            //SendMessage(textfield, EM_REPLACESEL, NULL, (LPARAM)((LPSTR)buff));
         }
         break;
         case WM_SIZE:
